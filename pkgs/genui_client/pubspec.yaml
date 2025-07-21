@@ -10,7 +10,7 @@ dependencies:
   file: ^7.0.1
   flutter:
     sdk: flutter
-  google_generative_ai: ^0.4.7
+  firebase_ai: ^2.3.0
   json_rpc_2: ^4.0.0
   platform: ^3.1.6
   stream_channel: ^2.1.4

@@ -7,7 +7,7 @@ import 'package:genui_client/src/ai_client/ai_client.dart';
 import 'package:genui_client/src/ui_server.dart';
 import 'package:genui_client/src/dynamic_ui.dart';
 import 'package:genui_client/src/tools/tools.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:firebase_ai/firebase_ai.dart';
 import 'package:platform/platform.dart';
 
 class MockAiClient extends AiClient {

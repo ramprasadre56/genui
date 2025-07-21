@@ -6,7 +6,7 @@ import 'dart:convert';
 
 import 'package:file/file.dart';
 import 'package:file/local.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:firebase_ai/firebase_ai.dart';
 import 'package:platform/platform.dart';
 
 import '../tools/tools.dart';
@@ -247,11 +247,9 @@ class AiClient {
     required AiClient configuration,
     Content? systemInstruction,
   }) {
-    return GenerativeModel(
+    return FirebaseAI.vertexAI().generativeModel(
       model: configuration.model,
       systemInstruction: systemInstruction,
-      apiKey: configuration.apiKey ??
-          configuration.platform.environment['GEMINI_API_KEY']!,
     );
   }
 
@@ -307,15 +305,7 @@ class AiClient {
           },
         );
         return result;
-      } on GenerativeAISdkException catch (exception) {
-        await onFail(exception);
-      } on ServerException catch (exception) {
-        if (exception.message.contains(
-          '${this.model} is not found for API version',
-        )) {
-          // If the model is not found, then just throw an exception.
-          throw AiClientException(exception.message);
-        }
+      } on FirebaseAIException catch (exception) {
         await onFail(exception);
       } catch (exception) {
         _error(
@@ -373,11 +363,9 @@ class AiClient {
     // Registers tools under both their name and their fullName (if different),
     // because `toFunctionDeclarations` will return both declarations if they
     // are different.
-    final generativeAiTools = Tool(
-      functionDeclarations: [
-        ...uniqueAiToolsByName.values.map((t) => t.toFunctionDeclarations())
-      ].expand((e) => e).toList(),
-    );
+    final generativeAiTools = Tool.functionDeclarations([
+      ...uniqueAiToolsByName.values.map((t) => t.toFunctionDeclarations())
+    ].expand((e) => e).toList());
     final allowedFunctionNames = <String>{
       ...uniqueAiToolsByName.keys,
       ...toolFullNames,
@@ -399,13 +387,11 @@ class AiClient {
       );
       final response = await model.generateContent(
         contents,
-        toolConfig: ToolConfig(
-          functionCallingConfig: FunctionCallingConfig(
-            mode: FunctionCallingMode.any,
-            allowedFunctionNames: allowedFunctionNames,
-          ),
-        ),
         tools: [generativeAiTools],
+        toolConfig: ToolConfig(
+          functionCallingConfig:
+              FunctionCallingConfig.any(allowedFunctionNames),
+        ),
       );
 
       // If the generate call succeeds, we need to reset the delay for the next

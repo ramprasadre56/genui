@@ -1,4 +1,4 @@
-import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:firebase_ai/firebase_ai.dart';
 
 /// A schema for defining a simple UI tree to be rendered by Flutter.
 ///
@@ -49,11 +49,9 @@ final flutterUiDefinition = Schema.object(
                 'Its structure depends on the value of the "type" field.',
           ),
         },
-        requiredProperties: ['id', 'type'],
       ),
     ),
   },
-  requiredProperties: ['root', 'widgets'],
   description: 'A schema for defining a simple UI tree to be rendered by '
       'Flutter.',
 );
