@@ -18,3 +18,4 @@ export 'src/model/ui_models.dart' show UiDefinition;
 export 'src/ui_agent.dart';
 export 'src/widgets/chat_widget.dart' show GenUiChat;
 export 'src/widgets/conversation_widget.dart';
+export 'src/primitives/logging.dart';
