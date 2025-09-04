@@ -4,6 +4,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:genui_client/genui_client.dart';
+import 'package:genui_client/genui_client_core.dart';
 import 'package:logging/logging.dart';
 
 void main() async {
@@ -34,12 +35,18 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   late final UiAgent _uiAgent;
+  late final UiEventManager _eventManager;
   bool _isInitialized = false;
 
   @override
   void initState() {
     super.initState();
     _uiAgent = UiAgent();
+    _eventManager = UiEventManager(
+      callback: (surfaceId, events) {
+        _uiAgent.sendUiEvents(events);
+      },
+    );
     _init();
   }
 
@@ -63,7 +70,7 @@ class _ChatScreenState extends State<ChatScreen> {
               ? GenUiChat(
                   agent: _uiAgent,
                   onEvent: (event) {
-                    // Handle UI events here.
+                    _eventManager.add(event);
                   },
                 )
               : const Center(child: CircularProgressIndicator()),
@@ -75,6 +82,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void dispose() {
     _uiAgent.dispose();
+    _eventManager.dispose();
     super.dispose();
   }
 }

@@ -65,6 +65,11 @@ class UiAgent {
     _sessionId = await _client.startSession(_genUiManager.catalog);
   }
 
+  /// Sends a list of UI events to the GenUI server.
+  Future<void> sendUiEvents(List<UiEvent> events) async {
+    await sendRequest(UserMessage(events.map(UiEventPart.new).toList()));
+  }
+
   /// Sends a request to the GenUI server to generate a UI.
   Future<void> sendRequest(UserMessage message) async {
     if (_sessionId == null) {

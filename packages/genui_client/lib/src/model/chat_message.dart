@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 import '../primitives/simple_items.dart';
+import 'ui_models.dart';
 
 /// A sealed class representing a part of a message.
 ///
@@ -26,6 +27,18 @@ final class TextPart implements MessagePart {
 
   @override
   Object? toJson() => {'type': 'text', 'text': text};
+}
+
+/// A part of a message that represents a UI event.
+final class UiEventPart implements MessagePart {
+  /// The UI event.
+  final UiEvent event;
+
+  /// Creates a [UiEventPart] with the given [event].
+  const UiEventPart(this.event);
+
+  @override
+  Object? toJson() => {'type': 'uiEvent', 'event': event.toMap()};
 }
 
 /// An image part of a message.
@@ -113,6 +126,10 @@ final class UserMessage extends ChatMessage {
   /// Creates a [UserMessage] with a single text part.
   factory UserMessage.text(String text) => UserMessage([TextPart(text)]);
 
+  /// Creates a [UserMessage] from a single UI event.
+  factory UserMessage.fromEvent(UiEvent event) =>
+      UserMessage([UiEventPart(event)]);
+
   /// The parts of the message.
   final List<MessagePart> parts;
 
@@ -161,7 +178,10 @@ final class AiUiMessage extends ChatMessage {
   JsonMap toJson() => {
     'role': 'model',
     'parts': [
-      {'type': 'ui', 'definition': definition},
+      {
+        'type': 'ui',
+        'definition': {'surfaceId': surfaceId, ...definition},
+      },
     ],
   };
 }

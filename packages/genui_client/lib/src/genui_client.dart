@@ -20,9 +20,11 @@ class GenUIClient {
 
   @visibleForTesting
   GenUIClient.withClient(
-    http.Client client, {
+    http.Client client,
+    {
     String baseUrl = 'http://localhost:3400',
-  }) : _baseUrl = baseUrl,
+  })
+    : _baseUrl = baseUrl,
        _client = client;
 
   Future<String> startSession(Catalog catalog) async {
@@ -100,7 +102,7 @@ class GenUIClient {
           final isFinal = json.containsKey('result');
           final message = isFinal
               ? (json['result'] as Map<String, Object?>)['message']
-                    as Map<String, Object?>?
+                  as Map<String, Object?>?
               : json['message'] as Map<String, Object?>?;
 
           if (message == null) continue;
@@ -123,12 +125,13 @@ class GenUIClient {
               for (final part in content) {
                 final partMap = part as Map<String, Object?>;
                 if (partMap.containsKey('toolRequest')) {
-                  final toolRequest =
+                  final toolRequest = 
                       partMap['toolRequest'] as Map<String, Object?>;
                   final toolName = toolRequest['name'] as String;
                   if (toolName == 'addOrUpdateSurface') {
-                    final input = toolRequest['input'] as Map<String, Object?>;
-                    final definition =
+                    final input = 
+                        toolRequest['input'] as Map<String, Object?>;
+                    final definition = 
                         input['definition'] as Map<String, Object?>;
                     final surfaceId = input['surfaceId'] as String;
                     yield AiUiMessage(

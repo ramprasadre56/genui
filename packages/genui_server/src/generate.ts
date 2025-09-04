@@ -1,9 +1,21 @@
 import { ai, z } from "./genkit";
-import { generateUiRequestSchema } from "./schemas";
+import { generateUiRequestSchema, Part as ClientPart } from "./schemas";
 import { googleAI } from "@genkit-ai/googleai";
 import { cacheService, CacheFlowContext } from "./cache";
 import { logger } from "./logger";
 import { Message, Part } from "@genkit-ai/ai";
+
+const widgetSchema = z.object({
+  id: z.string().describe("The unique ID for the widget."),
+  widget: z.any().describe("The widget definition."),
+});
+
+const uiDefinitionSchema = z.object({
+  root: z.string().describe("The ID of the root widget in the UI tree."),
+  widgets: z
+    .array(widgetSchema)
+    .describe("A list of all the widget definitions for this UI surface."),
+});
 
 const addOrUpdateSurfaceTool = ai.defineTool(
   {
@@ -12,9 +24,9 @@ const addOrUpdateSurfaceTool = ai.defineTool(
       "Add or update a UI surface. The 'definition' must conform to the JSON schema provided in the system prompt.",
     inputSchema: z.object({
       surfaceId: z.string().describe("The unique ID for the UI surface."),
-      definition: z
-        .any()
-        .describe("A JSON object that defines the UI surface."),
+      definition: uiDefinitionSchema.describe(
+        "A JSON object that defines the UI surface."
+      ),
     }),
     outputSchema: z.object({ status: z.string() }),
   },
@@ -73,7 +85,7 @@ After you have successfully called the 'addOrUpdateSurface' tool and have receiv
     const genkitConversation: Message[] = request.conversation.map(
       (message) => {
         const content: Part[] = message.parts
-          .map((part): Part | undefined => {
+          .map((part: ClientPart): Part | undefined => {
             if (part.type === "text") {
               return { text: part.text };
             }
@@ -100,6 +112,15 @@ After you have successfully called the 'addOrUpdateSurface' tool and have receiv
                   name: "addOrUpdateSurface",
                   input: part.definition,
                 },
+              };
+            }
+            if (part.type === "uiEvent") {
+              const event = part.event;
+              const value = event.value
+                ? ` with value ${JSON.stringify(event.value)}`
+                : "";
+              return {
+                text: `The user triggered the '${event.eventType}' event on widget '${event.widgetId}'${value}.`,
               };
             }
             return undefined;

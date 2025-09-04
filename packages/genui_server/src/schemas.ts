@@ -30,6 +30,18 @@ const textPartSchema = z.object({
   text: z.string(),
 });
 
+const uiEventPartSchema = z.object({
+  type: z.literal("uiEvent"),
+  event: z.object({
+    surfaceId: z.string(),
+    widgetId: z.string(),
+    eventType: z.string(),
+    isAction: z.boolean(),
+    value: z.any().optional(),
+    timestamp: z.string(),
+  }),
+});
+
 const imagePartSchema = z
   .object({
     type: z.literal("image"),
@@ -71,7 +83,12 @@ const uiPartSchema = z.object({
   }),
 });
 
-const partSchema = z.union([textPartSchema, imagePartSchema, uiPartSchema]);
+const partSchema = z.union([
+  textPartSchema,
+  imagePartSchema,
+  uiPartSchema,
+  uiEventPartSchema,
+]);
 // This defines the valid structure for a message in the conversation.
 const messageSchema = z.object({
   role: z.enum(["user", "model"]),
