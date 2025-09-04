@@ -12,9 +12,8 @@ const widgetSchema = z.object({
 
 const uiDefinitionSchema = z.object({
   root: z.string().describe("The ID of the root widget in the UI tree."),
-  widgets: z
-    .array(widgetSchema)
-    .describe("A list of all the widget definitions for this UI surface."),
+  widgets:
+    z.array(widgetSchema).describe("A list of all the widget definitions for this UI surface."),
 });
 
 const addOrUpdateSurfaceTool = ai.defineTool(
@@ -73,10 +72,12 @@ export const generateUiFlow = ai.defineFlow(
     const systemPrompt = `
 You are an expert UI generation agent. Your goal is to generate a UI based on the user's request.
 
+When the user interacts with the UI, you will receive a message containing a JSON block with an array of UI events. You should use the data from these events, especially the 'value' of the action event, to understand the current state of the UI and decide on the next step.
+
 When you use the 'addOrUpdateSurface' tool, the 'definition' parameter you provide MUST be a JSON object that strictly conforms to the following JSON Schema:
-\`\`\`json
+\班牙json
 ${catalogSchemaString}
-\`\`\`
+\班牙json
 
 After you have successfully called the 'addOrUpdateSurface' tool and have received a 'toolResponse' with a status of 'updated', you should consider the user's request fulfilled. Respond with a short confirmation message to the user and then stop. Do not call the tool again unless the user asks for further changes.
 `.trim();
@@ -84,14 +85,21 @@ After you have successfully called the 'addOrUpdateSurface' tool and have receiv
     // Transform conversation to Genkit's format
     const genkitConversation: Message[] = request.conversation.map(
       (message) => {
-        const content: Part[] = message.parts
+        const uiEventParts = message.parts.filter(
+          (part) => part.type === "uiEvent"
+        );
+        const otherParts = message.parts.filter(
+          (part) => part.type !== "uiEvent"
+        );
+
+        const content: Part[] = otherParts
           .map((part: ClientPart): Part | undefined => {
             if (part.type === "text") {
               return { text: part.text };
             }
             if (part.type === "image") {
               if (part.url) {
-                const mediaPart: {
+                const mediaPart: { 
                   media: { url: string; contentType?: string };
                 } = {
                   media: { url: part.url },
@@ -114,18 +122,28 @@ After you have successfully called the 'addOrUpdateSurface' tool and have receiv
                 },
               };
             }
-            if (part.type === "uiEvent") {
-              const event = part.event;
-              const value = event.value
-                ? ` with value ${JSON.stringify(event.value)}`
-                : "";
-              return {
-                text: `The user triggered the '${event.eventType}' event on widget '${event.widgetId}'${value}.`,
-              };
-            }
+            // uiEvent is handled below
             return undefined;
           })
           .filter((p): p is Part => p !== undefined);
+
+        if (uiEventParts.length > 0) {
+          const events = uiEventParts.map(
+            (part) => (part as any).event
+          );
+          content.push({
+            text: `The user interacted with the UI, resulting in the following events. The 'value' field of the event that triggered this interaction contains the state of all widgets on the surface at the time of the event.
+
+
+${JSON.stringify(
+              events,
+              null,
+              2
+            )}
+
+`,
+          });
+        }
 
         return new Message({
           role: message.role,
