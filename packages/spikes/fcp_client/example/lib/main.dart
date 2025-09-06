@@ -70,14 +70,14 @@ class _FcpViewerHomePageState extends State<FcpViewerHomePage> {
     try {
       final jsonText = _stateUpdateController.text;
       if (jsonText.isEmpty) {
-        setState(() => _error = 'State replace JSON cannot be empty.');
+        setState(() => _error = 'State update JSON cannot be empty.');
         return;
       }
       final jsonMap = json.decode(jsonText) as Map<String, Object?>;
-      final replace = StateUpdate.fromMap(jsonMap);
-      _fcpViewController.patchState(replace);
+      final update = StateUpdate.fromMap(jsonMap);
+      _fcpViewController.patchState(update);
     } catch (e) {
-      setState(() => _error = 'Error parsing state replace JSON: $e');
+      setState(() => _error = 'Error parsing state update JSON: $e');
     }
   }
 
@@ -86,14 +86,14 @@ class _FcpViewerHomePageState extends State<FcpViewerHomePage> {
     try {
       final jsonText = _layoutUpdateController.text;
       if (jsonText.isEmpty) {
-        setState(() => _error = 'Layout replace JSON cannot be empty.');
+        setState(() => _error = 'Layout update JSON cannot be empty.');
         return;
       }
       final jsonMap = json.decode(jsonText) as Map<String, Object?>;
-      final replace = LayoutUpdate.fromMap(jsonMap);
-      _fcpViewController.patchLayout(replace);
+      final update = LayoutUpdate.fromMap(jsonMap);
+      _fcpViewController.patchLayout(update);
     } catch (e) {
-      setState(() => _error = 'Error parsing layout replace JSON: $e');
+      setState(() => _error = 'Error parsing layout update JSON: $e');
     }
   }
 
@@ -111,7 +111,8 @@ class _FcpViewerHomePageState extends State<FcpViewerHomePage> {
               controller: _stateUpdateController,
               maxLines: 5,
               decoration: const InputDecoration(
-                hintText: 'Paste StateUpdate JSON here',
+                hintText:
+                    'Paste StateUpdate JSON here (e.g., {"operations": [{"op": "patch", "patch": {"op": "replace", "path": "/user/name", "value": "Bob"}}])',
                 border: OutlineInputBorder(),
               ),
             ),
